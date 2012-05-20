@@ -7,87 +7,59 @@ namespace YouPoorBastard
 {
     class Program
     {
-        private const string HelpInformationMessage = "Try 'YouPoorBastard.exe --help' for more information.";
-        private const string ExportSuccessMessage = "Data exported to '{0}'";
+        public const string HelpInformationMessage = "Try 'YouPoorBastard.exe --help' for more information.";
+        public const string ExportSuccessMessage = "Data exported to '{0}'";
 
         static void Main(string[] args)
         {
-            string databasePath = string.Empty;
-            string username = string.Empty;
-            string exportPath = string.Empty;
-            bool showHelp = false;
+            var arguments = new CommandLineArgs(args);
+            arguments.Initialize(Console.Out);
 
-            var os = new OptionSet()
+            if (arguments.ShowHelp)
             {
-                { "p|path=", "The directory where your Visual Source Safe database exists.", arg => databasePath = arg },
-                { "u|user=", "(optional) The name of a specific user account that you want to crack.", arg => username = arg },
-                { "e|export=", "The file name with path where you want the export file to be created.", arg => exportPath = arg },
-                { "h|help", "Gets you much needed help.", arg => showHelp = arg != null }
-            };
-
-            try
-            {
-                os.Parse(args);
-            }
-            catch (OptionException)
-            {
-                Console.WriteLine(HelpInformationMessage);
+                Program.ShowHelp(arguments.Options);
                 return;
             }
 
-            if (showHelp)
-            {
-                Program.ShowHelp(os);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(databasePath))
+            if (string.IsNullOrEmpty(arguments.DatabasePath))
             {
                 Console.WriteLine(string.Concat("You must specify a visual source safe database path. " + HelpInformationMessage));
                 return;
             }
 
+            if (!string.IsNullOrEmpty(arguments.Username))
+            {
+                Program.CrackSingle(arguments.DatabasePath, arguments.Username, arguments.ExportPath);
+            }
+            else
+            {
+                Program.CrackAll(arguments.DatabasePath, arguments.ExportPath);
+            }
+#if DEBUG
+            Console.ReadLine();
+#endif
+        }
+
+        private static void CrackSingle(string databasePath, string username, string exportPath)
+        {
             var dictionary = new WordList();
             try
             {
                 var db = new Database(databasePath);
-
-                if (string.IsNullOrEmpty(username))
+                if (string.IsNullOrEmpty(exportPath))
                 {
-                    // crack all the users
-                    if (string.IsNullOrEmpty(exportPath))
+                    var user = db.GetUser(username);
+                    if (user == null)
                     {
-                        var users = db.GetUsers();
-
-                        foreach (var user in users)
-                        {
-                            Program.PrintPasswords(user, dictionary);
-                        }
+                        Console.WriteLine(string.Format("The username '{0}' was not found.", username));
+                        return;
                     }
-                    else
-                    {
-                        db.Export(exportPath, dictionary);
-                        Program.WriteExportSuccessMessage(exportPath);
-                    }
+                    Program.PrintPasswords(user, dictionary);
                 }
                 else
                 {
-                    // crack a specific user
-                    if (string.IsNullOrEmpty(exportPath))
-                    {
-                        var user = db.GetUser(username);
-                        if (user == null)
-                        {
-                            Console.WriteLine(string.Format("The username '{0}' was not found.", username));
-                            return;
-                        }
-                        Program.PrintPasswords(user, dictionary);
-                    }
-                    else
-                    {
-                        db.Export(exportPath, dictionary, username);
-                        Program.WriteExportSuccessMessage(exportPath);
-                    }
+                    db.Export(exportPath, dictionary, username);
+                    Program.WriteExportSuccessMessage(exportPath);
                 }
             }
             catch (Exception e)
@@ -97,10 +69,35 @@ namespace YouPoorBastard
                 Console.WriteLine();
                 return;
             }
+        }
 
-#if DEBUG
-            Console.ReadLine();
-#endif
+        private static void CrackAll(string databasePath, string exportPath)
+        {
+            var dictionary = new WordList();
+            try
+            {
+                var db = new Database(databasePath);
+                if (string.IsNullOrEmpty(exportPath))
+                {
+                    var users = db.GetUsers();
+                    foreach (var user in users)
+                    {
+                        Program.PrintPasswords(user, dictionary);
+                    }
+                }
+                else
+                {
+                    db.Export(exportPath, dictionary);
+                    Program.WriteExportSuccessMessage(exportPath);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine();
+                Console.WriteLine(string.Format("Unable to crack passwords. The error message was: '{0}'", e.Message));
+                Console.WriteLine();
+                return;
+            }
         }
 
         private static void PrintPasswords(User user, WordList dictionary)
@@ -139,7 +136,11 @@ namespace YouPoorBastard
         private static void WriteExportSuccessMessage(string exportPath)
         {
             Console.WriteLine();
+
             Console.WriteLine(string.Format(Program.ExportSuccessMessage, exportPath));
+#if DEBUG
+            Console.ReadLine();
+#endif
         }
     }
 }
