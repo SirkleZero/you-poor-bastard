@@ -8,17 +8,20 @@ namespace YouPoorBastard
     class Program
     {
         private const string HelpInformationMessage = "Try 'YouPoorBastard.exe --help' for more information.";
+        private const string ExportSuccessMessage = "Data exported to '{0}'";
 
         static void Main(string[] args)
         {
             string databasePath = string.Empty;
             string username = string.Empty;
+            string exportPath = string.Empty;
             bool showHelp = false;
 
             var os = new OptionSet()
             {
                 { "p|path=", "The directory where your Visual Source Safe database exists.", arg => databasePath = arg },
-                { "u|user=", "(optional) The name of a specific user account that you want to crack.", arg => username = arg},
+                { "u|user=", "(optional) The name of a specific user account that you want to crack.", arg => username = arg },
+                { "e|export=", "The file name with path where you want the export file to be created.", arg => exportPath = arg },
                 { "h|help", "Gets you much needed help.", arg => showHelp = arg != null }
             };
 
@@ -52,23 +55,39 @@ namespace YouPoorBastard
                 if (string.IsNullOrEmpty(username))
                 {
                     // crack all the users
-                    var users = db.GetUsers();
-
-                    foreach (var user in users)
+                    if (string.IsNullOrEmpty(exportPath))
                     {
-                        Program.PrintPasswords(user, dictionary);
+                        var users = db.GetUsers();
+
+                        foreach (var user in users)
+                        {
+                            Program.PrintPasswords(user, dictionary);
+                        }
+                    }
+                    else
+                    {
+                        db.Export(exportPath, dictionary);
+                        Program.WriteExportSuccessMessage(exportPath);
                     }
                 }
                 else
                 {
                     // crack a specific user
-                    var user = db.GetUser(username);
-                    if (user == null)
+                    if (string.IsNullOrEmpty(exportPath))
                     {
-                        Console.WriteLine(string.Format("The username '{0}' was not found.", username));
-                        return;
+                        var user = db.GetUser(username);
+                        if (user == null)
+                        {
+                            Console.WriteLine(string.Format("The username '{0}' was not found.", username));
+                            return;
+                        }
+                        Program.PrintPasswords(user, dictionary);
                     }
-                    Program.PrintPasswords(user, dictionary);
+                    else
+                    {
+                        db.Export(exportPath, dictionary, username);
+                        Program.WriteExportSuccessMessage(exportPath);
+                    }
                 }
             }
             catch (Exception e)
@@ -105,7 +124,7 @@ namespace YouPoorBastard
 
             Console.WriteLine();
             Console.WriteLine("Examples:");
-            
+
             Console.WriteLine("Crack passwords for all users.");
             Console.WriteLine("YouPoorBastard.exe -p 'C:\\SomeDataDirectory\\SomeVSSDirectory\\'");
 
@@ -115,6 +134,12 @@ namespace YouPoorBastard
 #if DEBUG
             Console.ReadLine();
 #endif
+        }
+
+        private static void WriteExportSuccessMessage(string exportPath)
+        {
+            Console.WriteLine();
+            Console.WriteLine(string.Format(Program.ExportSuccessMessage, exportPath));
         }
     }
 }

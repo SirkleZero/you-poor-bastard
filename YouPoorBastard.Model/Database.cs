@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using YouPoorBastard.Model.Extensions;
 
 namespace YouPoorBastard.Model
 {
     public class Database : IEquatable<Database>
     {
+        #region constructors
+
         public Database(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -22,7 +25,17 @@ namespace YouPoorBastard.Model
             this.DatabasePath = path;
         }
 
+        #endregion
+
+        #region public properties
+
         public string DatabasePath { get; private set; }
+
+        #endregion
+
+        #region public methods
+
+        #region user methods
 
         public User GetUser(string username)
         {
@@ -96,21 +109,61 @@ namespace YouPoorBastard.Model
             return users;
         }
 
-        private static T RawDataToObject<T>(ref byte[] buffer) where T : class
+        #endregion
+
+        #region export methods
+
+        public void Export(string path, WordList dictionary, string username)
         {
-            T result = null;
-            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            try
+            if (string.IsNullOrEmpty(path))
             {
-                result = Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T)) as T;
+                throw new ArgumentOutOfRangeException("path");
             }
-            finally
+            if (dictionary == null)
             {
-                handle.Free();
+                throw new ArgumentNullException("dictionary");
+            }
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentOutOfRangeException("username");
             }
 
-            return result;
+            // get the specific user
+            var user = this.GetUser(username);
+            if (user != null)
+            {
+                this.Export(path, dictionary, new[] { user });
+            }
         }
+
+        public void Export(string path, WordList dictionary)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentOutOfRangeException("path");
+            }
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException("dictionary");
+            }
+
+            this.Export(path, dictionary, this.GetUsers());
+        }
+
+        private void Export(string path, WordList dictionary, IEnumerable<User> users)
+        {
+            var data = new List<dynamic>();
+            foreach (var user in users)
+            {
+                foreach (var password in user.Password.Crack(dictionary))
+                {
+                    data.Add(new { Username = user.Username, Password = password });
+                }
+            }
+            this.CreateExportFile<dynamic>(path, data);
+        }
+
+        #endregion
 
         #region IEquatable<VssDatabase>
 
@@ -183,6 +236,8 @@ namespace YouPoorBastard.Model
 
         #endregion
 
+        #region get hash code
+
         /// <summary>
         ///     <para>Serves as a hash function for a particular type. <see cref="M:System.Object.GetHashCode"/> is suitable for use in hashing algorithms and data structures like a hash table.</para>
         /// </summary>
@@ -192,5 +247,50 @@ namespace YouPoorBastard.Model
         {
             return this.DatabasePath.GetHashCode();
         }
+
+        #endregion
+
+        #endregion
+
+        #region private methods
+
+        private void CreateExportFile<T>(string filename, IEnumerable<T> data)
+        {
+            // touch the directory to make sure it exists
+            Database.TouchDirectory(filename);
+
+            var csv = data.ToDelimetedString(new DelimetedOptions('\t', true));
+            using (var file = File.CreateText(filename))
+            {
+                file.Write(csv);
+            }
+        }
+
+        private static void TouchDirectory(string path)
+        {
+            var directory = Path.GetDirectoryName(path);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
+
+        private static T RawDataToObject<T>(ref byte[] buffer) where T : class
+        {
+            T result = null;
+            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            try
+            {
+                result = Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T)) as T;
+            }
+            finally
+            {
+                handle.Free();
+            }
+
+            return result;
+        }
+
+        #endregion
     }
 }

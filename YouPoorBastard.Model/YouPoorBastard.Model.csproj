@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Database.cs" />
     <Compile Include="Extensions\ByteExtensions.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Password.cs" />
     <Compile Include="PasswordFoundEventArgs.cs" />
