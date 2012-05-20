@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace YouPoorBastard.Model
@@ -22,6 +23,18 @@ namespace YouPoorBastard.Model
         }
 
         public string DatabasePath { get; private set; }
+
+        public User GetUser(string username)
+        {
+            try
+            {
+                return this.GetUsers().Single(m => m.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public IEnumerable<User> GetUsers()
         {
