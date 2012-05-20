@@ -7,6 +7,8 @@ namespace YouPoorBastard
 {
     class Program
     {
+        private const string HelpInformationMessage = "Try 'YouPoorBastard.exe --help' for more information.";
+
         static void Main(string[] args)
         {
             string databasePath = string.Empty;
@@ -20,46 +22,61 @@ namespace YouPoorBastard
                 { "h|help", "Gets you much needed help.", arg => showHelp = arg != null }
             };
 
-            List<string> extra;
             try
             {
-                extra = os.Parse(args);
+                os.Parse(args);
             }
             catch (OptionException)
             {
-                Console.WriteLine("Try 'YouPoorBastard.exe --help' for more information.");
+                Console.WriteLine(HelpInformationMessage);
                 return;
             }
 
             if (showHelp)
             {
-                ShowHelp(os);
+                Program.ShowHelp(os);
                 return;
             }
 
             if (string.IsNullOrEmpty(databasePath))
             {
-                Console.WriteLine("You must specify a visual source safe database path. Try 'YouPoorBastard.exe --help' for more information.");
+                Console.WriteLine(string.Concat("You must specify a visual source safe database path. " + HelpInformationMessage));
                 return;
             }
 
             var dictionary = new WordList();
-            var db = new Database(databasePath);
-            if (string.IsNullOrEmpty(username))
+            try
             {
-                // crack all the users
-                var users = db.GetUsers();
+                var db = new Database(databasePath);
 
-                foreach (var user in users)
+                if (string.IsNullOrEmpty(username))
                 {
-                    PrintPasswords(user, dictionary);
+                    // crack all the users
+                    var users = db.GetUsers();
+
+                    foreach (var user in users)
+                    {
+                        Program.PrintPasswords(user, dictionary);
+                    }
+                }
+                else
+                {
+                    // crack a specific user
+                    var user = db.GetUser(username);
+                    if (user == null)
+                    {
+                        Console.WriteLine(string.Format("The username '{0}' was not found.", username));
+                        return;
+                    }
+                    Program.PrintPasswords(user, dictionary);
                 }
             }
-            else
+            catch (Exception e)
             {
-                // crack a specific user
-                var user = db.GetUser(username);
-                PrintPasswords(user, dictionary);
+                Console.WriteLine();
+                Console.WriteLine(string.Format("Unable to crack passwords. The error message was: '{0}'", e.Message));
+                Console.WriteLine();
+                return;
             }
 
 #if DEBUG

@@ -16,7 +16,7 @@ namespace YouPoorBastard.Model
             }
             if (!File.Exists(Path.Combine(path, "um.dat")))
             {
-                throw new FileNotFoundException("The users file for the vss database specified does not exist.");
+                throw new FileNotFoundException("The users file for the vss database specified does not exist. Make sure the path specified is a valid source safe path.");
             }
 
             this.DatabasePath = path;
