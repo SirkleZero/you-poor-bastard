@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Configuration;
-using YouPoorBastard.Model;
-using NDesk.Options;
 using System.Collections.Generic;
+using NDesk.Options;
+using YouPoorBastard.Model;
 
 namespace YouPoorBastard
 {
@@ -10,26 +9,14 @@ namespace YouPoorBastard
     {
         static void Main(string[] args)
         {
-        //    var p = new OptionSet() {
-        //    { "n|name=", "the {NAME} of someone to greet.",
-        //      v => names.Add (v) },
-        //    { "r|repeat=", 
-        //        "the number of {TIMES} to repeat the greeting.\n" + 
-        //            "this must be an integer.",
-        //      (int v) => repeat = v },
-        //    { "v", "increase debug message verbosity",
-        //      v => { if (v != null) ++verbosity; } },
-        //    { "h|help",  "show this message and exit", 
-        //      v => show_help = v != null },
-        //};
             string databasePath = string.Empty;
             string username = string.Empty;
             bool showHelp = false;
 
             var os = new OptionSet()
             {
-                { "p|path=", "The {PATH} to the visual source safe database you want to crack.", arg => databasePath = arg },
-                { "u|user=", "The name of a specific user that you want to crack.", arg => username = arg},
+                { "p|path=", "The directory where your Visual Source Safe database exists.", arg => databasePath = arg },
+                { "u|user=", "(optional) The name of a specific user account that you want to crack.", arg => username = arg},
                 { "h|help", "Gets you much needed help.", arg => showHelp = arg != null }
             };
 
@@ -40,7 +27,7 @@ namespace YouPoorBastard
             }
             catch (OptionException)
             {
-                Console.WriteLine("Try 'YouPoorBastard --help' for more information.");
+                Console.WriteLine("Try 'YouPoorBastard.exe --help' for more information.");
                 return;
             }
 
@@ -52,7 +39,7 @@ namespace YouPoorBastard
 
             if (string.IsNullOrEmpty(databasePath))
             {
-                Console.WriteLine("You must specify a visual source safe database path. Try 'YouPoorBastard --help' for more information.");
+                Console.WriteLine("You must specify a visual source safe database path. Try 'YouPoorBastard.exe --help' for more information.");
                 return;
             }
 
@@ -75,7 +62,9 @@ namespace YouPoorBastard
                 PrintPasswords(user, dictionary);
             }
 
+#if DEBUG
             Console.ReadLine();
+#endif
         }
 
         private static void PrintPasswords(User user, WordList dictionary)
@@ -89,12 +78,26 @@ namespace YouPoorBastard
 
         private static void ShowHelp(OptionSet optionSet)
         {
-            Console.WriteLine("Usage: YouPoorBastard [OPTIONS]");
-            Console.WriteLine("Crack passwords of visual source safe users. If no specific user is specified, crack all users.");
+            Console.WriteLine();
+            Console.WriteLine("Crack passwords of visual source safe users.");
+            Console.WriteLine();
+            Console.WriteLine("Usage: YouPoorBastard.exe [OPTIONS]");
             Console.WriteLine();
             Console.WriteLine("Options:");
             optionSet.WriteOptionDescriptions(Console.Out);
+
+            Console.WriteLine();
+            Console.WriteLine("Examples:");
+            
+            Console.WriteLine("Crack passwords for all users.");
+            Console.WriteLine("YouPoorBastard.exe -p 'C:\\SomeDataDirectory\\SomeVSSDirectory\\'");
+
+            Console.WriteLine("");
+            Console.WriteLine("Crack passwords for user 'jdoe'");
+            Console.WriteLine("YouPoorBastard.exe -p 'C:\\SomeDataDirectory\\SomeVSSDirectory\\' -u jdoe");
+#if DEBUG
             Console.ReadLine();
+#endif
         }
     }
 }
