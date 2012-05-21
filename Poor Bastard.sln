@@ -6,9 +6,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YouPoorBastard.Model", "YouPoorBastard.Model\YouPoorBastard.Model.csproj", "{72694896-5A07-4F72-B4ED-C4BB8F0260D0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7D6C7227-6C5A-4CA5-8577-98733A8C3C4C}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
