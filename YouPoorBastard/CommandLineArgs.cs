@@ -25,7 +25,7 @@ namespace YouPoorBastard
             {
                 { "p|path=", "The directory where your Visual Source Safe database exists.", arg => this.DatabasePath = arg },
                 { "u|user=", "(optional) The name of a specific user account that you want to crack.", arg => this.Username = arg },
-                { "e|export=", "The file name with path where you want the export file to be created.", arg => this.ExportPath = arg },
+                { "e|export=", "The full path to the file where you want the export to be saved.", arg => this.ExportPath = arg },
                 { "h|help", "Gets you much needed help.", arg => this.ShowHelp = arg != null }
             };
 

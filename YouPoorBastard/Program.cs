@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NDesk.Options;
 using YouPoorBastard.Model;
 
@@ -136,8 +135,8 @@ namespace YouPoorBastard
         private static void WriteExportSuccessMessage(string exportPath)
         {
             Console.WriteLine();
-
             Console.WriteLine(string.Format(Program.ExportSuccessMessage, exportPath));
+            Console.WriteLine();
 #if DEBUG
             Console.ReadLine();
 #endif

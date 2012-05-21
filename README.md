@@ -16,6 +16,7 @@ Features
 
 1. Crack the passwords of all users.
 2. Crack the password of a single, specified user.
+3. Export cracked passwords to a tab delimited file.
 
 Examples
 ========
@@ -26,11 +27,21 @@ To get help
 
 To crack the password of a single user
 
-    C:\InstallationPathHere .\YouPoorBastard.exe "C:\SomeDataFolder\YourVSSDirectory" -u johndoe
+    C:\InstallationPathHere .\YouPoorBastard.exe -p "C:\SomeDataFolder\YourVSSDirectory" -u johndoe
 
 To crack the password of all users in the source safe database
 
-    C:\InstallationPathHere .\YouPoorBastard.exe "C:\SomeDataFolder\YourVSSDirectory"
+    C:\InstallationPathHere .\YouPoorBastard.exe -p "C:\SomeDataFolder\YourVSSDirectory"
+
+To export the passwords to a file (all users)
+
+    C:\InstallationPathHere .\YouPoorBastard.exe -p "C:\SomeDataFolder\YourVSSDirectory" -e "C:\SomeDataFolder\Export.txt"
+
+To export the passwords to a file (single user)
+
+    C:\InstallationPathHere .\YouPoorBastard.exe -p "C:\SomeDataFolder\YourVSSDirectory" -e "C:\SomeDataFolder\Export.txt" - u johndoe
+
+NOTE: The path to the source safe database should be the root directory of the database. When you look in the directory, you should see a file called 'um.dat'. If you don't, you have the wrong path.
 
 Installation
 ============
@@ -40,8 +51,3 @@ Installation
 3. Put the build output wherever you want to run it from.
 
 NOTE: If you leave the solution in DEBUG mode, it will have a few annying pauses after performing operations. If you build with the RELEASE configuration you won't have this problem.
-
-Roadmap
-=======
-
-1. Add support to export data to a flat file.
